@@ -1,44 +1,128 @@
+# SPDX-License-Identifier: AGPL-3.0
+#
+# Maintainer: Truocolo <truocolo@aol.com>
+# Maintainer: Pellegrino Prevete (tallero) <pellegrinoprevete@gmail.com>
 # Maintainer: Chih-Hsuan Yen <yan12125@archlinux.org>
 # Contributor: Kyle Keen <keenerd@gmail.com>
 
-pkgname=python-jaraco.functools
+_git="false"
+_py="python"
+_pyver="$( \
+  "${_py}" \
+    -V | \
+    awk \
+      '{print $2}')"
+_pymajver="${_pyver%.*}"
+_proj="jaraco"
+_pkg="${_proj}.functools"
+_Pkg="${_proj}_functools"
+pkgname="${_py}-${_pkg}"
 # https://github.com/jaraco/jaraco.functools/blob/main/NEWS.rst
-pkgver=3.9.0
+pkgver=4.1.0
 # curl https://api.github.com/repos/jaraco/jaraco.functools/git/ref/tags/v$pkgver | jq -r .object.sha
-_tag=a51deece0e54c37c5811565a2997bce2a77fb0a7
+_tag="a51deece0e54c37c5811565a2997bce2a77fb0a7"
 pkgrel=1
 pkgdesc='Functools like those found in stdlib'
-arch=('any')
-url='https://github.com/jaraco/jaraco.functools'
-license=('MIT')
-depends=('python' 'python-more-itertools')
-makedepends=('git' 'python-build' 'python-installer' 'python-setuptools-scm' 'python-wheel')
-checkdepends=('python-pytest' 'python-jaraco.classes')
-conflicts=('python-jaraco')
-replaces=('python-jaraco')
-source=("git+https://github.com/jaraco/jaraco.functools?signed#tag=$_tag")
-sha512sums=('SKIP')
+arch=(
+  'any'
+)
+_http="https://github.com"
+_ns="${_proj}"
+url="${_http}/${_ns}/${_pkg}"
+license=(
+  'MIT'
+)
+depends=(
+  "${_py}>=${_pymajver}"
+  "${_py}-more-itertools"
+)
+makedepends=(
+  "${_py}-build"
+  "${_py}-installer"
+  "${_py}-setuptools-scm"
+  "${_py}-wheel"
+)
+checkdepends=(
+  "${_py}-pytest"
+  "${_py}-jaraco.classes"
+)
+conflicts=(
+  "${_py}-jaraco"
+)
+replaces=(
+  "${_py}-jaraco"
+)
+_pypi="https://pypi.io/packages/source"
+_tarname="${_Pkg}-${pkgver}"
+if [[ "${_git}" == "true" ]]; then
+  makedepends+=(
+    'git'
+  )
+  _src="${_tarname}::git+${url}?signed#tag=$_tag"
+  _sum="SKIP"
+elif [[ "${_git}" == "false" ]]; then
+  _src="${_tarname}.tar.gz::${_pypi}/${_pkg::1}/${_pkg}/${_Pkg}-${pkgver}.tar.gz"
+  # _src="${_pkg}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz"
+  _sum="70f7e0e2ae076498e212562325e805204fc092d7b4c17e0e86c959e249701a9d"
+fi
+
+source=(
+  "${_src}"
+)
+sha256sums=(
+  "${_sum}"
+)
 validpgpkeys=(
-  'CE380CF3044959B8F377DA03708E6CB181B4C47E' # https://github.com/jaraco.gpg
+  # https://github.com/jaraco.gpg
+  'CE380CF3044959B8F377DA03708E6CB181B4C47E'
 )
 
 pkgver() {
-  cd jaraco.functools
-  git describe --tags | sed 's/^v//'
+  local \
+    _pkgver
+  _pkgver="${pkgver}"
+  if [[ "${_git}" == "true" ]]; then
+    cd \
+      "${_tarname}"
+    _pkgver="$( \
+      git \
+        describe \
+        --tags | \
+        sed \
+	's/^v//')"
+  fi
+  echo \
+    "${_pkgver}"
 }
 
 build() {
-  cd jaraco.functools
-  python -m build --wheel --no-isolation
+  ls
+  cd \
+    "${_tarname}"
+  "${_py}" \
+    -m \
+      build \
+    --wheel \
+    --no-isolation
 }
 
 check() {
-  cd jaraco.functools
+  cd \
+    "${_tarname}"
   pytest
 }
 
 package() {
-  cd jaraco.functools
-  python -m installer --destdir="$pkgdir" dist/*.whl
-  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  cd \
+    "${_tarname}"
+  "${_py}" \
+    -m \
+      installer \
+    --destdir="${pkgdir}" \
+    dist/*.whl
+  install \
+    -Dm644 \
+    LICENSE \
+    "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
+
