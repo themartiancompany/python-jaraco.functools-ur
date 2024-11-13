@@ -13,6 +13,11 @@ _pyver="$( \
     awk \
       '{print $2}')"
 _pymajver="${_pyver%.*}"
+_pyminver="${_pymajver#*.}"
+_pynextver="${_pymajver%.*}.$(( \
+  ${_pyminver} + 1))"
+_pkg=requests
+pkgname="${_py}-${_pkg}"
 _proj="jaraco"
 _pkg="${_proj}.functools"
 _Pkg="${_proj}_functools"
@@ -34,6 +39,7 @@ license=(
 )
 depends=(
   "${_py}>=${_pymajver}"
+  "${_py}<${_pynextver}"
   "${_py}-more-itertools"
 )
 makedepends=(
